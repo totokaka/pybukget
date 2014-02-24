@@ -8,7 +8,7 @@ except ImportError:
     from urllib.parse import urlencode
 
 
-USER_AGENT='pyBukGet 2.1'
+USER_AGENT = 'pyBukGet 2.1'
 BASE = 'http://api.bukget.org/3'
 
 
@@ -22,11 +22,12 @@ def _request(url, data=None, jsonify=True, headers={}, query={}):
 
     # There is no reason for there ever to be a callback specified.  If we see
     # one, just remove it.
-    if 'callback' in query: del(query['callback'])
+    if 'callback' in query:
+        del(query['callback'])
 
     # Here we will collapse the fields list if we see it into a string as is
     # expected by the API.
-    if 'fields' in query and (' ' in query['fields'] or\
+    if 'fields' in query and (' ' in query['fields'] or
                               isinstance(query['fields'], list)):
         query['fields'] = ','.join(query['fields'])
 
@@ -112,17 +113,17 @@ def category_plugins(category, server=None, **query):
     # Depending on if the server variable is set, we can have one of 2
     # different URLs, so here we will set the call to the correct one.
     if server is not None:
-        call = '/categories/%s/%s' % (server, author)
+        call = '/categories/%s/%s' % (server, category)
     else:
-        call = '/categories/%s' % name
+        call = '/categories/%s' % category
     return _request(call, query=query)
 
 
 def search(*filters, **query):
     '''Searching the API.
-    This function is only utilizing the POST searching and is expecting properly
-    formatted search dictionaries.  Also all of the same query variables as is
-    described in the API3 docs will work here as well.
+    This function is only utilizing the POST searching and is expecting
+    properlyformatted search dictionaries.  Also all of the same query
+    variables as is described in the API3 docs will work here as well.
     '''
     query['filters'] = json.dumps(filters)
     return _request('/search', data=query)
@@ -139,8 +140,7 @@ def _levenshtein(s1, s2):
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
         for j, c2 in enumerate(s2):
-            insertions = previous_row[
-                             j + 1] + 1
+            insertions = previous_row[j + 1] + 1
             deletions = current_row[j] + 1
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
@@ -182,45 +182,48 @@ def find_by_name(server, name):
         pass
 
     # Then we search for a plugin with name that matches
-    search_result = search({
-                'field': 'plugin_name', 
-                'action': '=', 'value': name
-            }, {
-                'field': 'server', 
-                'action': '=', 'value': server
-            }, 
-            fields='slug')
+    search_result = search(
+        {
+            'field': 'plugin_name',
+            'action': '=', 'value': name
+        }, {
+            'field': 'server',
+            'action': '=', 'value': server
+        }, fields='slug')
+
     if len(search_result) > 0:
         return search_result[0]['slug']
 
     # Then we search for a plugin with a name like it
-    search_result = search({
-                'field': 'plugin_name', 
-                'action': 'like', 'value': name
-            }, {
-                'field': 'server', 
-                'action': '=', 'value': server
-            }, 
-            fields='slug')
+    search_result = search(
+        {
+            'field': 'plugin_name',
+            'action': 'like', 'value': name
+        }, {
+            'field': 'server',
+            'action': '=', 'value': server
+        }, fields='slug')
+
     if len(search_result) > 0:
         return _get_best_match(name, [i['slug'] for i in search_result])
-    
+
     #No plugin found =(
     return None
 
 
 def get_by_main(server, main):
-    ''' 
+    '''
     Fetches the slug of the plugin based on the java class name (main)
     '''
-    search_result = search({
-                'field': 'main', 
-                'action': '=', 'value': main
-            }, {
-                'field': 'server', 
-                'action': '=', 'value': server
-            }, 
-            fields='slug')
+    search_result = search(
+        {
+            'field': 'main',
+            'action': '=', 'value': main
+        }, {
+            'field': 'server',
+            'action': '=', 'value': server
+        }, fields='slug')
+
     if len(search_result) > 0:
         return search_result[0]['slug']
     else:

@@ -10,7 +10,7 @@ except ImportError:
 class Plugin(object):
     ''' An Object to hold Plugins.
     All atributes are the same name as the json names except the popularity.
-    Popularity is stored in attributes named 'popularity_daily', 
+    Popularity is stored in attributes named 'popularity_daily',
     'popularity_weekly' and 'popularity_monthly'. Versions is turned into an
     array of Version objects. __eg__ is owerwritten, so you can use == to check
     if they are the same plugin.
@@ -29,53 +29,64 @@ class Plugin(object):
             if key == 'versions':
                 self.versions = []
                 for version in json_object[key]:
-                    self.versions.append(Version(self, version))
+                    self.versions.append(Version(version))
                 continue
             elif key == 'popularity':
                 for key2, value2 in json_object[key].items():
                     setattr(self, key + '_' + key2, value2)
                 continue
             setattr(self, key, value)
-    
+
     def __eq__(self, other):
         return self.slug == other.slug
-    
+
     def __hash__(self):
         return hash(self.slug)
-    
+
     def join(self, other):
+        ''' Merge contents of these two Plugins.
+        This is intended for situations where you have some info about a plugin
+        in one object, and something else in another one. This methods does not
+        check if the plugins have the same slug, however.
+        '''
         return Plugin(self.json_object.update(other))
 
 
 class Version(object):
     ''' A class to hold version objects.
-    Everythin is named the same as in the json api. Commands and versions are
+    Everything is named the same as in the json api. Commands and versions are
     converted to objects.
     '''
-    def __init__(self, plugin, json_object):
+    def __init__(self, json_object):
         self.json_object = json_object
         for key, value in json_object.items():
             if key is 'commands':
                 self.commands = []
-                for version in json_object[key]:
-                    self.commands.append(Command(self, version))
+                for command in json_object[key]:
+                    self.commands.append(Command(command))
                 continue
             elif key is 'permissions':
                 self.permissions = []
                 for permission in json_object[key]:
-                    self.permissions.append(Permission(self, permission))
+                    self.permissions.append(Permission(permission))
                 continue
             setattr(self, key, value)
-    
+
     class Command(object):
-    
+        ''' Represents a Command
+        Used in Version listings.
+        '''
+
         def __init__(self, json_object):
             self.json_object = json_object
             for key, value in json_object.items():
                 setattr(self, key, value)
-                    
-    class Version(object):
-    
+
+    class Permission(object):
+        ''' Represents a Permission
+        Used in Version listings.
+        '''
+
         def __init__(self, json_object):
             self.json_object = json_object
             for key, value in json_object.items():
@@ -85,18 +96,19 @@ class Version(object):
 class Category(object):
     ''' An object to hold categories.
     This is only used for category listing
-    '''    
+    '''
+
     def __init__(self, json_object):
         ''' Initialise a new Category object.
         Should be self-explanatory...
         '''
         for key, value in json_object.items():
             setattr(self, key, value)
-            
-    def plugins(server=None, **query):
+
+    def plugins(self, server=None, **query):
         ''' List plugins in this category.
-        This will call the category_plugins function in pybukget, and thus takes
-        the same arguments except what category to list for.
+        This will call the category_plugins function in pybukget, and thus
+        takes the same arguments except what category to list for.
         '''
         return category_plugins(self.name, server=server, **query)
 
@@ -105,13 +117,14 @@ class Author(object):
     ''' A object to hold authors.
     Only used by author listing
     '''
+
     def __init__(self, json_object):
         ''' Initialise a new Author object.
         Should be self-explanatory...
         '''
         for key, value in json_object.items():
             setattr(self, key, value)
-    
+
     def plugins(self, server=None, **query):
         ''' List plugins by this author.
         This will call the author_plugins function in pybukget, and thus takes
@@ -119,16 +132,17 @@ class Author(object):
         '''
         return author_plugins(self.name, server=server, **query)
 
-    
+
 def plugins(server='', **query):
     '''Retreives a list of plugin objects.
     Optionally you can specity a server and any query variables per the API
     Documentation.
     '''
     plugins = []
-    query['fields'] = ['-nonexistant',]
+    query['fields'] = ['-nonexistant', ]
     result = api.plugins(server, **query)
-    if result is None: return None
+    if result is None:
+        return None
     for plugin in result:
         plugins.append(Plugin(plugin))
     return plugins
@@ -140,7 +154,8 @@ def plugin_details(server, plugin, version='', **query):
     specified by the API docs will work here.
     '''
     result = api.plugin_details(server, plugin, version=version, **query)
-    if result is None: return None
+    if result is None:
+        return None
     return Plugin(result)
 
 
@@ -148,21 +163,23 @@ def authors():
     '''Returns a list of authors and their plugin counts from the API.'''
     authors = []
     result = api.authors()
-    if result is None: return None
+    if result is None:
+        return None
     for author in result:
         authors.append(Author(author))
     return authors
 
-    
+
 def author_plugins(author, server=None, **query):
     '''Retreives a list of plugins written by the specified author.
     Optionally you can specity a server and any query variables per the API
     Documentation.
     '''
     plugins = []
-    query['fields'] = ['-nonexistant',]
+    query['fields'] = ['-nonexistant', ]
     result = api.author_plugins(author, server=server, **query)
-    if result is None: return None
+    if result is None:
+        return None
     for plugin in result:
         plugins.append(Plugin(plugin))
     return plugins
@@ -173,7 +190,8 @@ def categories():
     '''
     categories = []
     result = api.categories()
-    if result is None: return None
+    if result is None:
+        return None
     for category in categories:
         categories.append(Category(category))
     return categories
@@ -185,9 +203,10 @@ def category_plugins(category, server=None, **query):
     Documentation.
     '''
     plugins = []
-    query['fields'] = ['-nonexistant',]
+    query['fields'] = ['-nonexistant', ]
     result = api.category_plugins(category, server=server, **query)
-    if result is None: return None
+    if result is None:
+        return None
     for plugin in result:
         plugins.append(Plugin(plugin))
     return plugins
@@ -195,14 +214,15 @@ def category_plugins(category, server=None, **query):
 
 def search(*filters, **query):
     '''Searching the API.
-    This function is only utilizing the POST searching and is expecting properly
-    ftted search dictionaries.  Also all of the same query variables as is
-    described in the API3 docs will work here as well.
+    This function is only utilizing the POST searching and is expecting
+    properly fitted search dictionaries.  Also all of the same query variables
+    as is described in the API3 docs will work here as well.
     '''
     plugins = []
-    query['fields'] = ['-nonexistant',]
+    query['fields'] = ['-nonexistant', ]
     result = api.search(*filters, **query)
-    if result is None: return None
+    if result is None:
+        return None
     for plugin in result:
         plugins.append(Plugin(plugin))
     return plugins
@@ -219,17 +239,17 @@ def find_by_name(server, name):
     '''
     try:
         return plugin_details(server, api.find_by_name(server, name))
-    except:
+    except Exception:
         return None
 
 
 def get_by_main(server, main):
-    ''' 
+    '''
     Fetches the slug of the plugin based on the java class name (main)
 
     NOTE: This is a ORM-compliant version of the api.get_by_main
     '''
     try:
         return plugin_details(server, api.get_by_main(server, main))
-    except:
+    except Exception:
         return None
