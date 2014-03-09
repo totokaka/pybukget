@@ -30,6 +30,9 @@ def _request(url, data=None, jsonify=True, headers={}, query={}):
     if 'fields' in query and (' ' in query['fields'] or
                               isinstance(query['fields'], list)):
         query['fields'] = ','.join(query['fields'])
+    if data is not None and 'fields' in data and (' ' in data['fields'] or
+                            isinstance(data['fields'], list)):
+        data['fields'] = ','.join(data['fields'])
 
     # Append the query to the URL if we have anything in the query dictionary.
     if len(query) > 0:
@@ -66,6 +69,8 @@ def plugin_details(server, plugin, version='', **query):
     Optionally a specific version can be specified.  All query variables
     specified by the API docs will work here.
     '''
+    if type(plugin) is not str:
+        return None
     call = '/plugins/%s/%s/%s' % (server, plugin, version)
     return _request(call, query=query)
 
@@ -75,6 +80,8 @@ def plugin_download(server, plugin, version):
     This function will return the raw data stream from the API.  We will NOT be
     returning dictionaries in this case!
     '''
+    if type(plugin) is not str:
+        return None
     call = '/plugins/%s/%s/%s/download' % (server, plugin, version)
     return _request(call, jsonify=False)
 
